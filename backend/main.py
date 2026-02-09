@@ -20,10 +20,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-frontend_dist_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+# Skip frontend serving on Vercel (handled by Vercel rewrites)
+IS_VERCEL = "VERCEL" in os.environ
 
-if os.path.isdir(frontend_dist_path):
-    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
+if not IS_VERCEL:
+    frontend_dist_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+    if os.path.isdir(frontend_dist_path):
+        app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist_path, "assets")), name="assets")
 
 def get_simple_sentiment(ticker: str):
     """
@@ -154,15 +157,16 @@ def predict(ticker: str, vol_multiplier: float = Query(1.0, gt=0, lt=5)):
         "probability_increase_5_percent": prob_increase
     }
 
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    file_path = os.path.join(frontend_dist_path, full_path)
-    if os.path.isfile(file_path):
-        return FileResponse(file_path)
-    
-    index_path = os.path.join(frontend_dist_path, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
+if not IS_VERCEL:
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        file_path = os.path.join(frontend_dist_path, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
         
-    return {"status": "Frontend build not found. Please run 'npm run build' in frontend directory."}
+        index_path = os.path.join(frontend_dist_path, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+            
+        return {"status": "Frontend build not found. Please run 'npm run build' in frontend directory."}
 
