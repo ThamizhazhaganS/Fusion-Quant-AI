@@ -1,0 +1,32 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Build outputs
+backend/__pycache__/
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+backend/debug_pipeline.py
+backend/test_sentiment.py
+backend/test_tv.py
+backend/test_tv_ta.py
+backend/test_yf.py
